@@ -12,17 +12,17 @@ from oauth2client.client import FlowExchangeError
 import httplib2
 import json
 from flask import make_response
-import requests
+import requests, os
 
 app = Flask(__name__)
 
 CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
+    open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'client_secrets.json'), 'r').read())['web']['client_id']
 
 
 
 #Connect to Database and create database session
-engine = create_engine('sqlite:///foodiecatalog.db')
+engine = create_engine('postgresql://grader:grader@localhost:5432/foodiecatalog')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -78,7 +78,7 @@ def gconnect():
 
     try:
         # Upgrade the authorization code into a credentials object
-        oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
+        oauth_flow = flow_from_clientsecrets(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'client_secrets.json'), scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
@@ -478,4 +478,4 @@ def deleteMenuItem(restaurant_id,menu_id):
 if __name__ == '__main__':
   app.secret_key = 'guessworkz'
   app.debug = True # Disable in production
-  app.run()
+  app.run(host = '0.0.0.0', port = 5000)
